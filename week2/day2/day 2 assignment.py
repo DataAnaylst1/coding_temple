@@ -34,3 +34,11 @@ def solution(inputstring):
             end = index
             return solution(inputstring[:start] + inputstring[start + 1:end][::-1] + inputstring[end + 1:]) 
     return inputstring
+
+
+def litres(time):
+# so for every 1 hour of cycling, there's 0.5 litres of water being consumed
+    if time < 1:
+            return time *0.5 ==0
+    else:
+        return (time *0.5)//1
