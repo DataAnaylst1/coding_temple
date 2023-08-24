@@ -109,3 +109,7 @@ ggplot(df, aes(x=game_title, fill=metascore)) + geom_bar(position='dodge')
 ```
 
 ![](http://127.0.0.1:28277/chunk_output/9FC3ABBE3372eec2/4D4F180D/cqyrmjylpzvy8/000016.png)
+
+```{r}
+
+```
