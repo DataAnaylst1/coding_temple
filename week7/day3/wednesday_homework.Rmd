@@ -1,0 +1,111 @@
+---
+title: "Wednesday Homework"
+Date: 08-23-2023
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
+
+```{r}
+# Install packages and activating library
+
+install.packages('tidyverse')
+library(tidyverse)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+# Reading in CSV File
+
+df <- read_csv('/Users/investmentguy/Documents/python_stuff/coding_temple/week6/day3/Call of Duty Reviews.csv')
+```
+
+```{r}
+View(df)
+```
+
+```{r}
+# Null and Alternative Hypothesis
+
+Ho, game_title Black Ops II, leads in metascore, critic & user compound
+Ha, does not lead in metascore, nor critic & user compound
+```
+
+```{r}
+# Replaced Spaces in Columns with underscores and converted all to lowercase
+
+names(df) <- gsub(" ","_", tolower(names(df)))
+
+df
+```
+
+```{r}
+# Checking for Null Values
+colSums(is.na(df))
+```
+
+```{r}
+# Dropping NA Values for metascore
+
+df <- df %>% drop_na(metascore)
+
+```
+
+```{r}
+#Confirming Current Null Values
+
+colSums(is.na(df))
+```
+
+```{r}
+# Dropping Null Values for critic_compound_score
+
+df <- df %>% drop_na(critic_compound_score)
+```
+
+```{r}
+# Confirming Current Null Value Count
+# I will keep the NUll Values for platform and release_year, for my hypothesis testing is not concerned with these details, only the scores for each title
+colSums(is.na(df))
+```
+
+```{r}
+#table(df['game_title'])
+
+# Mutate new column with critc and user compound and times by 100 to create simplicity when running analysis with metascore
+
+df_mutate <- mutate(df,
+                    user_and_critic_compound_score = round((critic_compound_score * user_compound_score)*100))
+df <- df_mutate
+df
+```
+
+```{r}
+install.packages('plyr')
+library(plyr)
+```
+
+```{r}
+
+```
+
+```{r}
+ddply(df,"game_title", numcolwise(sum))
+```
+
+```{r}
+ggplot(df, aes(x=game_title,y=metascore))+ geom_bar(stat = 'identity')
+```
+
+```{r}
+ggplot(df, aes(x=game_title, fill=metascore)) + geom_bar(position='dodge')
+```
+
+![](http://127.0.0.1:28277/chunk_output/9FC3ABBE3372eec2/4D4F180D/cqyrmjylpzvy8/000016.png)

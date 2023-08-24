@@ -878,5 +878,5 @@ sort(my_factor)
 6.  What values can a BOOLEAN contain?
 
     ```{r}
-    TRUE or FALSE
+    TRUE or FALSE.
     ```
