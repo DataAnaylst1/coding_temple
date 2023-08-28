@@ -1,0 +1,276 @@
+---
+title: "Capstone 1, Motor Vehicle Occupant Rate"
+output: html_notebook
+---
+
+In the forthcoming document, I will guide you through a comprehensive process of effectively examining data. The approach involves several sequential steps that I will explain. The process begins with the formulation of a prediction or hypothesis related to the dataset. Subsequently, I will delve into an extensive exploration of the data, aimed at either confirming or disproving the initial prediction or hypothesis. It's important to note that the essence of data analysis lies in the art of posing relevant questions and unearthing deep insights. As the analysis progresses, it's possible that we might formulate additional predictions or hypotheses based on the emerging patterns. For the purpose of this analysis, I have chosen a dataset encompassing data regarding the mortality rate of individuals in motor vehicle accidents, spanning the years 2012 and 2014. The data is categorized by age group, geographical location, and gender, providing a comprehensive basis for the analysis.
+
+# My Hypothesis is as follows:
+
+I hold the viewpoint that the male gender displays a more pronounced correlation with age as a determinant factor in causing the motor vehicle death rate, in comparison to the female gender with age. Upon the completion of my analysis, I will be in a position to either reject or fail to reject my initial hypothesis. In essence, the outcome of the analysis will provide me with the necessary information to make a determination about the validity of the hypothesis I initially formulated along with potentially validating the stability of age itself.
+
+# Step 1: Importing Libraries
+
+When working with R, or any programming software for that matter, to employ specific methods or perform certain actions, it's necessary to first install the libraries that corresponds to those methods or actions.
+
+```{r}
+install.packages('tidyverse')
+install.packages('dplyr')
+install.packages('ggplot2')
+install.packages('psych')
+library(psych)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+# Step 2: Upload CSV file
+
+I will utilize the read.csv() function to import the data. Additionally, I will save the CSV file as a variable named "df," which stands for dataframe. This variable will help facilitate a seamless approach when referencing the dataset during the course of my analysis.
+
+```{r}
+df <- read.csv('/Users/investmentguy/Documents/python_stuff/coding_temple/week3/Motor_Vehicle_Occupant_Death_Rate__by_Age_and_Gender__2012___2014__All_States__Bar_Chart (1).csv')
+```
+
+# Step 3: Clean The Data
+
+-   I want to normalize the column names, (I will explain in detail)
+
+-   Do I need to drop any columns?
+
+-   I need to check for null values (meaning any empty rows with missing data)
+
+    I will utilize the View() function to visualize the entire dataset at once:
+
+```{r}
+View(df)
+```
+
+## Normalize the column names:
+
+Upon reviewing my dataset, I will substitute any periods in the column names with underscores and convert all capitalized letters to lowercase. This adheres to the recommended column naming conventions in R:
+
+```{r}
+names(df) <- gsub("\\.", "_", tolower(names(df)))
+View(df)
+```
+
+## Drop any columns:
+
+I have decided to delete the location column. For my analysis, creating a visual map would be a benefit but not necessary. Outside of that, I have decided to retain all other columns. The other columns in our dataset holds significance for our analysis, and given that we're working with a modest-sized dataset, retaining all the remaining columns is a prudent approach.
+
+```{r}
+to_remove <- c("location")
+df <- df[ , !(names(df) %in% to_remove)]
+View(df)
+```
+
+## Check for null values:
+
+My next step is to determine the count of null values present in this dataset:
+
+```{r}
+colSums(is.na(df))
+```
+
+\
+I have opted to remove the row corresponding to the District of Columbia, as this entire row contains no data, along with the entire first row.
+
+```{r}
+df <- df[-c(1,40),]
+View(df)
+```
+
+I am currently reviewing a summary of the null values within the dataset:
+
+```{r}
+colSums(is.na(df))
+```
+
+Considering the dataset's size, the most optimal approach would be to fill the null values with the average of each column rather than opting for their deletion.
+
+```{r}
+
+df$age_0_20__2012[is.na(df$age_0_20__2012)] <- round(mean(df$age_0_20__2012, na.rm = TRUE),2)
+df$age_0_20__2014[is.na(df$age_0_20__2014)] <- round(mean(df$age_0_20__2014, na.rm = TRUE),2)
+df$age_21_34__2012[is.na(df$age_21_34__2012)] <- round(mean(df$age_21_34__2012, na.rm = TRUE),2)
+df$age_21_34__2014[is.na(df$age_21_34__2014)] <- round(mean(df$age_21_34__2014, na.rm = TRUE),2)
+df$age_35_54__2012[is.na(df$age_35_54__2012)] <- round(mean(df$age_35_54__2012, na.rm = TRUE),2)
+df$age_55___2012[is.na(df$age_55___2012)] <- round(mean(df$age_55___2012, na.rm = TRUE),2)
+df$age_55___2014[is.na(df$age_55___2014)] <- round(mean(df$age_55___2014, na.rm = TRUE),2)
+df$male__2014[is.na(df$male__2014)] <- round(mean(df$male__2014, na.rm = TRUE),2)
+df$female__2012[is.na(df$female__2012)] <- round(mean(df$female__2012, na.rm = TRUE),2)
+df$female__2014[is.na(df$female__2014)] <- round(mean(df$female__2014, na.rm = TRUE),2)
+df$age_35_54__2014[is.na(df$age_35_54__2014)] <- round(mean(df$age_35_54__2014, na.rm = TRUE),2)
+#df$age_0_20__2012=rowMeans(df[,c("test1", "test2")], na.rm=TRUE)
+```
+
+I am verifying that all the null values have been successfully handled. As evident, all the entries display zeros uniformly:
+
+```{r}
+colSums(is.na(df))
+```
+
+# Step 4: Explore the Data
+
+-   Running a numerical summary, descriptive statistics
+
+    This method serves the purpose of identifying the central tendency of a dataset, highlighting where the majority of values tend to cluster. Descriptive statistics offers significant advantages, often employed to gain a deeper understanding of our data without the need for exhaustive examination. It provides a concise overview that aids in pinpointing areas worthy of more in-depth exploration.
+
+```{r}
+summary(df)
+```
+
+After conducting a statistical analysis, it is evident that the mean and median of each variable (column) exhibit minimal disparity. However, it's essential to exercise caution during the interpretation of these numerical summary statistics. Jumping to the conclusion of a normal distribution based solely on these measures is a common mistake we must avoid. To further our analysis, the next logical step involves a closer examination of the standard deviation numerically and then the dataset's distribution graphically.
+
+Examining the data below, it's evident that the standard deviation for all age groups in the year 2012 is approximately 4.06. Let's delve into this analysis: This measurement validates the extent of data dispersion or how widely it is distributed. "Deviation" signifies a departure from an established path or an accepted norm. In this context, with a mean of 5.113 serving as the standard (as displayed in our numerical summary statistics above), our anticipated prediction revolved around an average or mean value of approximately 5.113. However, the actual outcome, indicated by the standard deviation of 4.06, demonstrates that the observed value "deviated" from this standard of 5.113 by 4.06 standard deviations.
+
+```{r}
+sd(df$all_ages__2012)
+```
+
+This analysis will also prove valuable in assessing the variance across all age groups for the year 2014. Given the resemblance in variance for each respective year, it becomes highly plausible that predicting the age of a potential motor vehicle accident victim is a complex task. Consequently, the age distribution among our victims might be considerably wide-ranging, to the extent that age alone might not exhibit as strong a correlation with the causes of motor vehicle fatalities, compared to other influencing factors.
+
+```{r}
+sd(df$all_ages__2014)
+```
+
+After careful analysis, it becomes apparent that the standard deviation for females in each respective year demonstrates a more pronounced correlation compared to the standard deviation across all age groups. It's important to note that the standard deviation for females would naturally exhibit less variability or errors in comparison to the overall age distribution, considering that gender is a binary category. This signifies that predictions related to gender have a more balanced probability of being accurate, with a 50-50 chance of being correct. Could this potentially act as a complementary factor to the age group rather than the male category? This calls for a deeper investigation to ascertain its role.
+
+```{r}
+sd(df$female__2012)
+```
+
+```{r}
+sd(df$female__2014)
+```
+
+\
+Upon conducting a more comprehensive analysis, it appears that my initial hypothesis could face potential rejection due to the substantial variance observed among males for each respective year. However, it's essential to exercise caution and refrain from drawing premature conclusions in our analysis. The numerical representation of our standard deviation is not an absolute determinant; rather, it serves as an entry point that opens the door to our comprehensive analysis.
+
+```{r}
+sd(df$male__2012)
+```
+
+```{r}
+sd(df$male__2014)
+```
+
+Curiously, when we examine the graphical representation of the distribution for females in the year 2012 and year 2014, it becomes evident that the distribution is quite dispersed. Conversely, in our investigation, we have singled out the state of Wyoming as an outlier for females across both respective years.
+
+```{r}
+ggplot(df, aes(x=female__2012, y=state)) + geom_point()
+```
+
+```{r}
+ggplot(df, aes(x=female__2014, y=state)) + geom_point()
+```
+
+When analyzing the male distribution, a significant surge was observed in the state of Wyoming from 2012 to 2014. Notably, Wyoming emerged as the national leader in this category. This intriguing insight prompted me to conduct an isolated analysis focused solely on the state of Wyoming. Such separate in-depth analyses are of paramount importance to substantiate and validate the data trends specific to Wyoming.
+
+```{r}
+ggplot(df, aes(x=male__2012, y=state)) + geom_point()
+```
+
+```{r}
+ggplot(df, aes(x=male__2014, y=state)) + geom_point()
+```
+
+Provided below is an autonomous investigation conducted by the New York State Department of Health Bureau of Occupational Health and Injury Prevention. Within this study, it is affirmed that Motor Vehicle Traffic Injuries stand as the second primary cause of fatalities related to injuries within Wyoming County.
+
+A quote from New York State department of Health Bureau of Occupational Health and Injury Prevention, "Traffic crash-related injuries are not accidents! They are not random, uncontrollable acts of fate, but occur in predictable patterns, with recognizable risk factors and among identifiable populations. A traffic crash-related injury is a predictable and preventable event!"
+
+Additionally, it's important to highlight that Wyoming not only held the highest number of women motor vehicle fatalities nationwide in each respective year but also experienced a similar trend among males in 2014. The question that arises is: What factors contribute to such a heightened incidence of fatalities in Wyoming?
+
+Given that women had previously led in this category, it raises the possibility of a causal connection between their leading status and Wyoming's prominence in the men's category in 2014. Considering the statement from the New York State Department of Health Bureau of Occupational Health and Injury Prevention, this situation doesn't seem coincidental but rather anticipatable and preventable. This prompts us to explore the reasons behind women's predominance in this category.
+
+Could the decrease in the number of fatalities among women directly influence a reduction in men's fatalities in Wyoming? Is it plausible to infer that there might be an underlying issue concerning the workload and responsibilities borne by women in Wyoming, potentially leading to distractions while driving?
+
+This line of reasoning underscores the significance of investigating the root causes and potential correlations, shedding light on a potential interplay between women's roles and driving safety.
+
+This situation has prompted me to formulate another hypothesis: I speculate that Wyoming might exhibit a notable disparity between single-parent households and those with both parents present. This potential imbalance could lead to an increased burden on women, who might find themselves juggling multiple responsibilities. This heavier load might result in distractions while driving, such as texting and attending to other tasks, ultimately diverting their attention away from the road.
+
+![](images/Screenshot 2023-08-27 at 5.53.39 PM.png){width="3000"}
+
+![](images/Screenshot 2023-08-27 at 5.58.08 PM.png)
+
+Below is The Wyoming Women's Foundation, (WYWF) which invests in the economic self-sufficiency of women and opportunities for girls in Wyoming. They are devoted to furthering the goal of economic justice for women and their families by:
+
+-   researching and evaluating public policy related to income adequacy;
+
+-   create tools to assess and establish income inadequacy; and
+
+-   develop programs and policies that strengthen public investment in low-income women, children, and families.
+
+    The establishment of this foundation dates back to 1999. I am of the belief that the trends we've uncovered in 2012 and 2014 likely reflect an enduring issue within the state of Wyoming over the years. To comprehensively understand this situation, I'm inclined to acquire more comprehensive data specific to this state. This encompassing dataset would cover, but not be restricted to:
+
+    1.  **Employment Disparities:** A comprehensive analysis of the employment rates among males and females, delving into any disparities and their potential drivers.
+
+    2.  **Gender Pay Gap:** Thoroughly examining the average salaries for identical job roles among males and females, taking into account factors that might contribute to wage discrepancies.
+
+    3.  **Education and Prominent Roles:** Investigating the educational prerequisites for prominent positions, both for males and females, and assessing whether any gender-related disparities exist.
+
+    4.  **Divorce Rate:** Studying the divorce rate in Wyoming to gauge its potential impact on family dynamics and women's responsibilities.
+
+    5.  **Survey on Women in Prominent Roles:** Conducting a comprehensive survey among women in significant roles, capturing their backgrounds, such as whether they hail from single-parent households, their education levels, parental income, and family composition.
+
+    By assimilating these data points, a clearer picture of the underlying factors contributing to the observed trends can be obtained. This multidimensional approach can aid in comprehending the potential interplay between societal, economic, and familial dynamics that may lead to distraction-related driving issues in Wyoming.
+
+    Because of the lack of relevant Wyoming-specific data in the current dataset, I find myself in a position where I cannot either accept or dismiss my hypothesis regarding women being distracted while driving. The absence of comprehensive information prevents a conclusive assessment of the hypothesis's validity in the context of Wyoming's driving trends.
+
+![](images/Screenshot 2023-08-27 at 7.43.34 PM.png)
+
+![Presented here is a summary of the mortality rates across different age groups, categorized by state, for the year 2014. It's worth observing that Wyoming certainly stands out as an outlier---an exceptional case that significantly deviates from the norm. Notably, the mortality rate among individuals aged 21 to 34 in Wyoming reaches an astonishing 37.5. Given this exceptional observation, there's a consideration to exclude Wyoming from our hypothesis testing, aiming to achieve a more standardized outcome. Conversely, we encounter a notable outlier with a rate of 4.3 that requires attention. To address this, we could contemplate employing a "trimmed" median or mean technique. This approach involves excluding extreme values from both the higher and lower ends of our dataset. Typically, when utilizing the trimmed median or mean statistical technique, it is customary to trim around 10% of data points from the uppermost and lowermost portions of the distribution, respectively. For the purpose of fulfilling the capstone project's requirements, accompanying Excel graphs are provided.](images/Picture1-01.png){width="10000"}
+
+![](images/Picture2.png)
+
+Presented below are the comprehensive male-to-female comparisons across the entire nation for the years 2012 and 2014. It is evident that males have consistently held the leading position in each respective state across both years. While it might seem apparent from these visuals that males might possess a stronger direct correlation with our target vector, age, when predicting the fatality rate, it is imperative to adhere to a fundamental principle: avoid assumptions and always subject claims to rigorous testing. Visual representations can sometimes be misleading, as they may suggest correlations solely due to elevated results. However, this doesn't necessarily signify that specific variables are causally linked to others. A cautious approach is necessary, emphasizing thorough testing and analysis rather than solely relying on graphical depictions.
+
+![](images/male-to-female-2012.png)
+
+![](images/male-to-female-2014.png)
+
+Given the atypical scenario in Wyoming and the presence of an outlier at the lower end, I have opted to explore the concept of the trimmed mean strategy. This approach is being considered to potentially bring about a normalization of the distribution by mitigating the influence of extreme values.
+
+```{r}
+describe(df)
+```
+
+Upon reviewing the trimmed column within the describe method above, the disparities between the trimmed option and retaining the mean average appear to lack substantial significance. Given this observation, the incorporation of the trimmed mean technique seems unwarranted. Consequently, my decision is to eliminate the Wyoming data from the dataset entirely. This course of action is prompted by the recognition that Wyoming's data presents an anomaly, and the goal is to establish a normalized distribution for the purpose of our hypothesis testing.
+
+```{r}
+df <- df[!(row.names(df) %in% c("47")),]
+View(df)
+```
+
+Now it is time to run our correlation analysis:
+
+I initiated the analysis by contrasting our target vector, which encompasses all ages, in the year 2012 with the male data for the same year. The correlation between these two variables is notably high, reaching an impressive percentage of 99%.
+
+```{r}
+cor(df$all_ages__2012, df$male__2012)
+```
+
+It's evident that while a substantial correlation exists between all ages in 2012 and females in the same year, this correlation isn't as robust as the correlation observed among males.
+
+```{r}
+cor(df$all_ages__2012, df$female__2012)
+```
+
+In the year 2014, there was a slight decrease in the correlation between all ages and males compared to the year 2012; however, the correlation remains significant and robust.
+
+```{r}
+cor(df$all_ages__2014, df$male__2014)
+```
+
+We have observed that there was a substantial drop of nearly 10% in the correlation between females and all ages from the year 2012 to the year 2014. This prompts us to consider whether there might be underlying factors contributing to such a significant decline.
+
+```{r}
+cor(df$all_ages__2014, df$female__2014)
+```
+
+![]()
+
+In summary, my analysis did not provide sufficient evidence to reject the null hypothesis. Although a robust correlation between all ages and females is evident in each respective year, it's important to acknowledge that we excluded Wyoming from our hypothesis testing, which could have potentially enhanced the correlation. Furthermore, the absence of recorded data from the District of Columbia limits our testing scope.
+
+However, this investigation underscores the significance of delving deeper into the biological composition of the male gender, potentially shedding light on certain adverse inclinations. I hold the belief that through further research into factors such as male testosterone and other biochemical indicators that contribute to male predispositions, we might unveil preventive strategies that have the potential to significantly mitigate these adverse tendencies.
